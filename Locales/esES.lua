@@ -1,10 +1,10 @@
 -- by Durcc
-if GetLocale() ~= "esES" then return end
+if not LOCALE_esES then return end
  
-select( 2, ... ).L = setmetatable({
-	ENHANCED_MENU = "Enhanced Menu",
-    GUILD_INVITE = "Invitar a la Hermandad",
-    COPY_NAME = "Copiar Nombre",
-    SEND_WHO = "¿Quién?",
-    ARMORY_URL = "Armería",
-}, { __index = select(2, ... ).L})
+local L = select( 2, ...).L
+
+L["ENHANCED_MENU"] = "Enhanced Menu"
+L["GUILD_INVITE"] = "Invitar a la Hermandad"
+L["COPY_NAME"] = "Copiar Nombre"
+L["SEND_WHO"] = "¿Quién?"
+L["ARMORY_URL"] = "Armería"

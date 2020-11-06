@@ -1,10 +1,10 @@
 -- by Sexnonstop
-if GetLocale() ~= "ruRU" then return end
+if not LOCALE_ruRU then return end
 
-select( 2, ... ).L = setmetatable({
-	ENHANCED_MENU = "Улучшенное Меню:",
-	GUILD_INVITE = "Пригласить в Гильдию",
-	COPY_NAME = "Cкопировать никнейм",
-	SEND_WHO = "Информация",
-	ARMORY_URL = "Ссылка в Оружейной",
-}, { __index = select(2, ... ).L})
+local L = select( 2, ...).L
+
+L["ENHANCED_MENU"] = "Улучшенное Меню:"
+L["GUILD_INVITE"] = "Пригласить в Гильдию"
+L["COPY_NAME"] = "Cкопировать никнейм"
+L["SEND_WHO"] = "Информация"
+L["ARMORY_URL"] = "Ссылка в Оружейной"

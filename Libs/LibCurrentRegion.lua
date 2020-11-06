@@ -1,30 +1,12 @@
 -------------------------------------------------------
 -- LibCurrentRegion
--- fyhcslb, 2016/08/14
+-- fyhcslb
 -- Based on LibRealmInfo-10 (Phanx)
 -- http://wow.curseforge.com/addons/librealminfo
 -------------------------------------------------------
+local _, addon = ...
 
-local lib = LibStub:NewLibrary("LibCurrentRegion", "1")
-if not lib then return end
-
-local currentRegion
-
-function lib:GetCurrentRegion()
-	local guid = UnitGUID("player")
-	if guid then
-		local serverID = tonumber(strmatch(guid, "^Player%-(%d+)"))
-		local region = realmData[serverID]
-		if region then
-			currentRegion = region
-		else
-			currentRegion = GetCVar("portal")	-- not found, use CVar
-		end
-		return currentRegion
-	end
-end
-
-realmData = {
+local realmData = {
 	[1136] = "US", --Aegwynn
 	[1284] = "US", --Aerie Peak
 	[1129] = "US", --Agamaggan
@@ -974,3 +956,17 @@ realmData = {
 	[3663] = "TW", --米奈希爾
 	[965]  = "TW", --雷鱗
 }
+
+function addon:GetCurrentRegion()
+	local guid = UnitGUID("player")
+	if guid then
+		local serverID = tonumber(strmatch(guid, "^Player%-(%d+)"))
+		local region = realmData[serverID]
+
+		if region then
+			return region
+		else
+			return GetCVar("portal")	-- not found, use CVar
+		end
+	end
+end
