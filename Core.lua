@@ -5,7 +5,9 @@ EM.funcs = {}
 local F = EM.funcs
 local L = EM.L
 
-local EnhancedMenu_ItemOrder = {"GUILD_INVITE", "COPY_NAME", "SEND_WHO", "ARMORY_URL"}
+local LRI = LibStub("LibRealmInfo")
+
+local EnhancedMenu_ItemOrder = {"GUILD_INVITE", "COPY_NAME", "SEND_WHO", "ARMORY_URL", "RAIDER_IO"}
 local EnhancedMenu_Items = {
     ["ENHANCED_MENU"] = {
         text = L["ENHANCED_MENU"],
@@ -28,6 +30,10 @@ local EnhancedMenu_Items = {
         text = L["ARMORY_URL"],
         notCheckable = 1,
     },
+    ["RAIDER_IO"] = {
+        text = L["RAIDER_IO"],
+        notCheckable = 1,
+    },
 }
 local EnhancedMenu_Func = {}
 local EnhancedMenu_Which = {}
@@ -45,57 +51,115 @@ local EnhancedMenu_Which = {}
 -- which
 ----------------------------------------------------------------------------
 EnhancedMenu_Which["GUILD_INVITE"] = {
-	["PLAYER"] = true,
+    ["PLAYER"] = true,
     ["FRIEND"] = true,
-	["PARTY"] = true,
-	["RAID_PLAYER"] = true,
+    ["PARTY"] = true,
+    ["RAID_PLAYER"] = true,
+    ["BN_FRIEND"] = true,
 }
 
 EnhancedMenu_Which["COPY_NAME"] = {
-	["SELF"] = true,
-	["TARGET"] = true,
-	["PARTY"] = true,
-	["PLAYER"] = true,
-	["RAID_PLAYER"] = true,
-	["FRIEND"] = true,
-	["FRIEND_OFFLINE"] = true,
-	["COMMUNITIES_GUILD_MEMBER"] = true,
+    ["SELF"] = true,
+    ["TARGET"] = true,
+    ["PARTY"] = true,
+    ["PLAYER"] = true,
+    ["RAID_PLAYER"] = true,
+    ["FRIEND"] = true,
+    ["FRIEND_OFFLINE"] = true,
+    ["COMMUNITIES_GUILD_MEMBER"] = true,
+    ["BN_FRIEND"] = true,
 }
 
 EnhancedMenu_Which["SEND_WHO"] = {
-	["FRIEND"] = true,
+    ["FRIEND"] = true,
 }
 
-EnhancedMenu_Which["ARMORY_URL"] = {
-	["SELF"] = true,
-	["PARTY"] = true,
-	["PLAYER"] = true,
-	["RAID_PLAYER"] = true,
-	["FRIEND"] = true,
-	["FRIEND_OFFLINE"] = true,
-	["COMMUNITIES_GUILD_MEMBER"] = true,
-}
+if LRI:GetCurrentRegion() == "CN" then
+    EnhancedMenu_Which["ARMORY_URL"] = {}
+else
+    EnhancedMenu_Which["ARMORY_URL"] = {
+        ["SELF"] = true,
+        ["PARTY"] = true,
+        ["PLAYER"] = true,
+        ["RAID_PLAYER"] = true,
+        ["FRIEND"] = true,
+        ["FRIEND_OFFLINE"] = true,
+        ["COMMUNITIES_GUILD_MEMBER"] = true,
+        ["BN_FRIEND"] = true,
+    }
+end
 
-print(UnitGUID("player"))
-print(EM:GetCurrentRegion())
+EnhancedMenu_Which["RAIDER_IO"] = {
+    ["SELF"] = true,
+    ["PARTY"] = true,
+    ["PLAYER"] = true,
+    ["RAID_PLAYER"] = true,
+    ["FRIEND"] = true,
+    ["FRIEND_OFFLINE"] = true,
+    ["COMMUNITIES_GUILD_MEMBER"] = true,
+    ["BN_FRIEND"] = true,
+}
 
 ----------------------------------------------------------------------------
 -- func
 ----------------------------------------------------------------------------
+local subInfos = {}
+
+local submenu = CreateFrame("Frame", "EnhancedMenu_SubMenu")
+local function ToggleEnhancedMenu_SubMenu(funcName)
+    UIDropDownMenu_Initialize(submenu, function(self, level)
+        for _, info in pairs(subInfos) do
+            if funcName == "GUILD_INVITE" then
+                info.func = function(self) F:ConfirmGuildInvite(info.name, info.server) end
+            elseif funcName == "COPY_NAME" then
+                info.func = function(self) F:ShowName(info.name, info.server) end
+            elseif funcName == "ARMORY_URL" then
+                info.func = function(self) F:ShowArmoryURL(info.name, info.server) end
+            elseif funcName == "RAIDER_IO" then
+                info.func = function(self) F:ShowRaiderIO(info.name, info.server) end
+            end
+            UIDropDownMenu_AddButton(info, level)
+        end
+    end)
+    ToggleDropDownMenu(1, nil, submenu, "cursor", 0, 60)
+end
+
 EnhancedMenu_Func["GUILD_INVITE"] = function(name, server)
-    F:ConfirmGuildInvite(name.."-"..server)
+    if name and server then
+        F:ConfirmGuildInvite(name, server)
+    else
+        ToggleEnhancedMenu_SubMenu("GUILD_INVITE")
+    end
 end
 
 EnhancedMenu_Func["COPY_NAME"] = function(name, server)
-    F:ShowName(name.."-"..server)
+    if name and server then
+        F:ShowName(name, server)
+    else
+        ToggleEnhancedMenu_SubMenu("COPY_NAME")
+    end
 end
 
 EnhancedMenu_Func["SEND_WHO"] = function(name, server)
+    -- local _, name, nameForAPI = LRI:GetRealmInfo(server)
     C_FriendList.SetWhoToUi(false)
-    C_FriendList.SendWho("n-"..name.."-"..server)
+    C_FriendList.SendWho("n-"..name)
 end
 
 EnhancedMenu_Func["ARMORY_URL"] = function(name, server)
+    if name and server then
+        F:ShowArmoryURL(name, server)
+    else
+        ToggleEnhancedMenu_SubMenu("ARMORY_URL")
+    end
+end
+
+EnhancedMenu_Func["RAIDER_IO"] = function(name, server)
+    if name and server then
+        F:ShowRaiderIO(name, server)
+    else
+        ToggleEnhancedMenu_SubMenu("RAIDER_IO")
+    end
 end
 
 ----------------------------------------------------------------------------
@@ -120,7 +184,7 @@ local function PrepareButtons(which, name, server)
     end
 
     if i ~= 0 then
-        tinsert(buttons, 1, EnhancedMenu_Items["ENHANCED_MENU"])
+        tinsert(buttons, 1, EnhancedMenu_Items["ENHANCED_MENU"]) -- insert title
         return true
     end
 end
@@ -128,7 +192,9 @@ end
 ----------------------------------------------------------------------------
 -- hook
 ----------------------------------------------------------------------------
-hooksecurefunc("UnitPopup_ShowMenu", function()
+hooksecurefunc("UnitPopup_ShowMenu", function(self, which)
+    if which == "BN_FRIEND" then return end
+
     local menuLevel = UIDROPDOWNMENU_MENU_LEVEL
     if menuLevel > 1 then return end
 
@@ -139,6 +205,44 @@ hooksecurefunc("UnitPopup_ShowMenu", function()
     local show = PrepareButtons(menu.which, menu.name, menu.server)
     -- Interface\SharedXML\UIDropDownMenu.lua
     if show then
+        UIDropDownMenu_AddSeparator()
+        for _, info in pairs(buttons) do
+            UIDropDownMenu_AddButton(info)
+        end
+    end
+end)
+
+-------------------------------------------------------
+-- BNFriends
+-------------------------------------------------------
+hooksecurefunc("FriendsFrame_ShowBNDropdown", function(name, connected, lineID, chatType, chatFrame, friendsList, bnetIDAccount)
+    if connected then
+        local friendIndex = BNGetFriendIndex(bnetIDAccount)
+        local numGameAccounts = C_BattleNet.GetFriendNumGameAccounts(friendIndex)
+       
+        wipe(subInfos)
+        for accountIndex = 1, numGameAccounts do
+            local gameAccountInfo = C_BattleNet.GetFriendGameAccountInfo(friendIndex, accountIndex)
+            
+            if gameAccountInfo["wowProjectID"] == 1 and gameAccountInfo["clientProgram"] == BNET_CLIENT_WOW then
+                local info = UIDropDownMenu_CreateInfo()
+                info.text = gameAccountInfo["characterName"].."-"..gameAccountInfo["realmName"]
+                info.name = gameAccountInfo["characterName"]
+                info.server = gameAccountInfo["realmName"]
+                info.notCheckable = 1
+                tinsert(subInfos, info)
+            end
+        end
+
+        -- texplore(subInfos)
+        if #subInfos == 0 then
+            return
+        elseif #subInfos == 1 then
+            PrepareButtons("BN_FRIEND", subInfos[1]["name"], subInfos[1]["server"])
+        else
+            PrepareButtons("BN_FRIEND")
+        end
+
         UIDropDownMenu_AddSeparator()
         for _, info in pairs(buttons) do
             UIDropDownMenu_AddButton(info)
