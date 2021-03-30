@@ -254,7 +254,7 @@ end)
 -- Alt + LeftButton = Invite
 -- stolen from FriendsMenuXP
 -------------------------------------------------------
-function GetNameFromLink(link)
+local function GetNameFromLink(link)
     local _, name, _ = strsplit(":", link)
     if ( name and (strlen(name) > 0) ) then	-- necessary?
         name = gsub(name, "([^%s]*)%s+([^%s]*)%s+([^%s]*)", "%3")
@@ -263,7 +263,7 @@ function GetNameFromLink(link)
     return name
 end
 
-function EnhancedMenu_ChatFrame_OnHyperlinkShow(self, playerString, text, button)
+local function EnhancedMenu_ChatFrame_OnHyperlinkShow(self, playerString, text, button)
     if(playerString and strsub(playerString, 1, 6) == "player") then
         if IsAltKeyDown() and button == "LeftButton" then
 			DEFAULT_CHAT_FRAME.editBox:Hide()
