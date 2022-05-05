@@ -1,9 +1,9 @@
-## Interface: 90100
-## Title: EnhancedMenu
-## Notes: Extends popup menus.
+## Interface: 90200
+## Title: Enhanced Menu
+## Notes: Extends popup menus
 ## Notes-zhCN: 右键菜单增强
-## Version: 2.1
-## Author: fyhcslb
+## Version: 2.2
+## Author: enderneko
 
 Libs\LoadLibs.xml
 
